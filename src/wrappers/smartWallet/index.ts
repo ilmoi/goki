@@ -67,6 +67,7 @@ export class SmartWalletWrapper {
   }: NewTransactionArgs): Promise<PendingSmartWalletTransaction> {
     //get tx count
     const index = (await this.reloadData()).numTransactions.toNumber();
+    console.log('creating tx under index', index);
     //find the PDA that will store info for the tx
     const [txKey, txBump] = await findTransactionAddress(this.key, index);
     //prep accs

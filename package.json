@@ -17,7 +17,7 @@
     "docs:generate": "typedoc --excludePrivate --includeVersion --out site/ts/ src/index.ts",
     "lint": "eslint .",
     "idl:generate": "./scripts/parse-idls.sh && ./scripts/generate-idl-types.sh",
-    "test:e2e": "anchor test --skip-build tests/*.spec.ts",
+    "test:e2e": "anchor test tests/*.spec.ts",
     "prepare": "husky install",
     "typecheck": "tsc"
   },

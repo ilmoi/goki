@@ -25,6 +25,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program;
 use anchor_lang::Key;
 use std::convert::Into;
+use std::str::FromStr;
 use vipers::invariant;
 use vipers::unwrap_int;
 use vipers::unwrap_or_err;
@@ -487,6 +488,17 @@ pub struct CreateSubaccountInfo<'info> {
 fn do_execute_transaction(ctx: Context<ExecuteTransaction>, seeds: &[&[&[u8]]]) -> ProgramResult {
     // execute all ixs
     for ix in ctx.accounts.transaction.instructions.iter() {
+
+        // fixme adding simple whitelisting
+        msg!("ix is {:#?}", ix);
+        if ix.program_id == Pubkey::from_str("11111111111111111111111111111111").unwrap() {
+            let allowlist = vec![Pubkey::from_str("5u1vB9UeQSCzzwEhmKPhmQH1veWP9KZyZ8xFxFrmj8CK").unwrap()];
+            let dest_pk = ix.keys[1].pubkey;
+            if !allowlist.contains(&dest_pk) {
+                return Err(ErrorCode::DestinationNotWhitelisted.into());
+            }
+        }
+
         solana_program::program::invoke_signed(&(ix).into(), ctx.remaining_accounts, seeds)?;
     }
 
@@ -507,7 +519,7 @@ fn do_execute_transaction(ctx: Context<ExecuteTransaction>, seeds: &[&[&[u8]]]) 
 #[error]
 pub enum ErrorCode {
     #[msg("The given owner is not part of this smart wallet.")]
-    InvalidOwner,
+    InvalidOwner, //0
     #[msg("Estimated execution block must satisfy delay.")]
     InvalidETA,
     #[msg("Delay greater than the maximum.")]
@@ -517,7 +529,7 @@ pub enum ErrorCode {
     #[msg("Transaction is past the grace period.")]
     TransactionIsStale,
     #[msg("Transaction hasn't surpassed time lock.")]
-    TransactionNotReady,
+    TransactionNotReady, //5
     #[msg("The given transaction has already been executed.")]
     AlreadyExecuted,
     #[msg("Threshold must be less than or equal to the number of owners.")]
@@ -526,4 +538,6 @@ pub enum ErrorCode {
     OwnerSetChanged,
     #[msg("Subaccount does not belong to smart wallet.")]
     SubaccountOwnerMismatch,
+    #[msg("destination not whitelisted")]
+    DestinationNotWhitelisted,
 }

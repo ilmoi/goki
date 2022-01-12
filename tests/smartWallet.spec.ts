@@ -10,6 +10,7 @@ import { sleep, u64 } from "@saberhq/token-utils";
 import {
   Keypair,
   LAMPORTS_PER_SOL,
+  PublicKey,
   SystemProgram,
   TransactionInstruction,
 } from "@solana/web3.js";
@@ -92,7 +93,6 @@ describe("smartWallet", () => {
         ],
         data,
       });
-
       const { transactionKey, tx: proposeTx } =
         await smartWalletWrapper.newTransaction({
           proposer: ownerA.publicKey,
@@ -153,7 +153,7 @@ describe("smartWallet", () => {
         0
       );
 
-      //prep approve tx and send it
+      //try to approve again with ownerB, but now this tx is invalidated due to owners change (previous it block)
       let tx = smartWalletWrapper
         .approveTransaction(transactionKey, ownerB.publicKey)
         .addSigners(ownerB);
@@ -166,7 +166,7 @@ describe("smartWallet", () => {
         // );
       }
 
-      //prep execute tx and send it
+      //try to exec this fails, for same reason
       tx = await smartWalletWrapper.executeTransaction({
         transactionKey,
         owner: ownerA.publicKey,
@@ -182,6 +182,7 @@ describe("smartWallet", () => {
       }
     });
 
+    //fixme well technically it's not, technically it just gives an error
     it("transaction execution is idempotent", async () => {
       const newThreshold = new u64(1);
       const data = program.coder.instruction.encode("change_threshold", {
@@ -408,7 +409,7 @@ describe("smartWallet", () => {
       smartWalletWrapper = wrapperInner;
     });
 
-    it("Can transfer lamports from smart wallet", async () => {
+    it.only("Can transfer lamports from smart wallet", async () => {
       const { provider, key } = smartWalletWrapper;
 
       const index = 0;
@@ -423,7 +424,9 @@ describe("smartWallet", () => {
       ]);
       await expectTX(tx1, "transfer lamports to smart wallet").to.be.fulfilled;
 
-      const receiver = Keypair.generate().publicKey;
+      // fixme adding simple whitelisting
+      const receiver = new PublicKey("75ErM1QcGjHiPMX7oLsf9meQdGSUs4ZrwS2X8tBpsZhA");
+
       const ix = SystemProgram.transfer({
         fromPubkey: derivedWalletKey,
         toPubkey: receiver,
@@ -470,7 +473,7 @@ describe("smartWallet", () => {
         {
           numOwners: owners.length,
           owners,
-          threshold: new BN(1),
+          threshold: new BN(2), //this can be set to anything, because we only need owner to sign
         }
       );
       await expectTX(tx, "create new smartWallet").to.be.fulfilled;
@@ -478,16 +481,19 @@ describe("smartWallet", () => {
     });
 
     it("should invoke 1 of N", async () => {
-      const index = 5;
+      const index = 33; //can be set to anything, this goes into the PDA seeds
       const [invokerKey] = await smartWalletWrapper.findOwnerInvokerAddress(
         index
       );
 
+      //airdrop some money to invokerKey PDA
       await new PendingTransaction(
         provider.connection,
         await provider.connection.requestAirdrop(invokerKey, LAMPORTS_PER_SOL)
       ).wait();
 
+      //ok what we're saying here is - if the owner's PDA had some funds deposited into it some time before
+      //with this tx they could now move funds out of there
       const invokeTX = await smartWalletWrapper.ownerInvokeInstruction({
         index,
         instruction: SystemProgram.transfer({
@@ -499,6 +505,8 @@ describe("smartWallet", () => {
       await expectTX(invokeTX, "transfer lamports to smart wallet").to.be
         .fulfilled;
 
+      //try to create a subaccount for the wallet with the wrong key
+      //todo why?
       await expectTX(
         await sdk.createSubaccountInfo({
           smartWallet: invokerKey,
@@ -508,6 +516,7 @@ describe("smartWallet", () => {
         "create wrong subaccount info"
       ).to.be.fulfilled;
 
+      //like expected, we fail to find it
       const [infoKey] = await findSubaccountInfoAddress(invokerKey);
       const info =
         await sdk.programs.SmartWallet.account.subaccountInfo.fetchNullable(
@@ -515,6 +524,8 @@ describe("smartWallet", () => {
         );
       expect(info).to.be.null;
 
+      //try to create subaccount for the wallet with the correct key
+      //todo why are we creating this account after we've drained the money from it?
       await expectTX(
         await sdk.createSubaccountInfo({
           smartWallet: smartWalletWrapper.key,
@@ -522,14 +533,14 @@ describe("smartWallet", () => {
           type: "ownerInvoker",
         }),
         "create subaccount info"
-      ).to.be.fulfilled;
+      ).to.be.fulfilled; //succeeds
 
       const info2 = await sdk.programs.SmartWallet.account.subaccountInfo.fetch(
         infoKey
       );
-      expect(info2.index).to.bignumber.eq(index.toString());
-      expect(info2.smartWallet).to.eqAddress(smartWalletWrapper.key);
-      expect(info2.subaccountType).to.deep.eq({ ownerInvoker: {} });
+      expect(info2.index).to.bignumber.eq(index.toString()); //matches index
+      expect(info2.smartWallet).to.eqAddress(smartWalletWrapper.key); //matches smart wallet
+      expect(info2.subaccountType).to.deep.eq({ ownerInvoker: {} }); //matches PDA type
     });
   });
 });
