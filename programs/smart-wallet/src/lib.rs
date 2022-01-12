@@ -18,6 +18,8 @@
 //! To sign, owners should invoke the [smart_wallet::approve] instruction, and finally,
 //! [smart_wallet::execute_transaction], once enough (i.e. [SmartWallet::threshold]) of the owners have
 //! signed.
+//!
+//! fixme TLDR:
 #![deny(rustdoc::all)]
 #![allow(rustdoc::missing_doc_code_examples)]
 
@@ -58,7 +60,7 @@ declare_id!("GokivDYuQXPZCWRkwMhdH2h91KpDQXBEmpgBgs55bnpH");
 pub mod smart_wallet {
     use super::*;
 
-    /// Initializes a new [SmartWallet] account with a set of owners and a threshold.
+    /// fixme Initializes a new [SmartWallet] account with a set of owners and a threshold.
     #[access_control(ctx.accounts.validate())]
     pub fn create_smart_wallet(
         ctx: Context<CreateSmartWallet>,
@@ -77,11 +79,11 @@ pub mod smart_wallet {
         smart_wallet.base = ctx.accounts.base.key();
         smart_wallet.bump = bump;
 
-        smart_wallet.threshold = threshold;
+        smart_wallet.threshold = threshold; //how many signers to go ahead
         smart_wallet.minimum_delay = minimum_delay;
         smart_wallet.grace_period = DEFAULT_GRACE_PERIOD;
 
-        smart_wallet.owner_set_seqno = 0;
+        smart_wallet.owner_set_seqno = 0; //todo seems like counts how many times owners were set
         smart_wallet.num_transactions = 0;
 
         smart_wallet.owners = owners.clone();
@@ -96,7 +98,7 @@ pub mod smart_wallet {
         Ok(())
     }
 
-    /// Sets the owners field on the smart_wallet. The only way this can be invoked
+    /// fixme Sets the owners field on the smart_wallet. The only way this can be invoked
     /// is via a recursive call from execute_transaction -> set_owners.
     #[access_control(ctx.accounts.validate())]
     pub fn set_owners(ctx: Context<Auth>, owners: Vec<Pubkey>) -> ProgramResult {
@@ -116,7 +118,7 @@ pub mod smart_wallet {
         Ok(())
     }
 
-    /// Changes the execution threshold of the smart_wallet. The only way this can be
+    /// fixme Changes the execution threshold of the smart_wallet. The only way this can be
     /// invoked is via a recursive call from execute_transaction ->
     /// change_threshold.
     #[access_control(ctx.accounts.validate())]
@@ -146,7 +148,9 @@ pub mod smart_wallet {
         create_transaction_with_timelock(ctx, bump, instructions, NO_ETA)
     }
 
-    /// Creates a new [Transaction] account with time delay.
+    /// fixme Creates a new [Transaction] account with time delay.
+    ///  literally prepares an account with a bunch of tx data on it, like proposer, ixs, signers, etc
+    //   "eta" is ts when tx will execute
     #[access_control(ctx.accounts.validate())]
     pub fn create_transaction_with_timelock(
         ctx: Context<CreateTransaction>,
@@ -159,12 +163,16 @@ pub mod smart_wallet {
 
         let clock = Clock::get()?;
         let current_ts = clock.unix_timestamp;
+
+        // if minimum delay is not 0, then require eta >= current ts + min delay
         if smart_wallet.minimum_delay != 0 {
             require!(
                 eta >= unwrap_int!(current_ts.checked_add(smart_wallet.minimum_delay as i64)),
                 InvalidETA
             );
         }
+
+        // if eta is indeed set, then it must be > 0, delay must be > 0, delay must be < max delay
         if eta != NO_ETA {
             invariant!(eta >= 0, "ETA must be positive");
             let delay = unwrap_int!(eta.checked_sub(current_ts));
@@ -178,6 +186,7 @@ pub mod smart_wallet {
         signers.resize(owners.len(), false);
         signers[owner_index] = true;
 
+        // add 1 tx to total tx count recorded on wallet
         let index = smart_wallet.num_transactions;
         let smart_wallet = &mut ctx.accounts.smart_wallet;
         smart_wallet.num_transactions = unwrap_int!(smart_wallet.num_transactions.checked_add(1));
@@ -208,7 +217,7 @@ pub mod smart_wallet {
         Ok(())
     }
 
-    /// Approves a transaction on behalf of an owner of the smart_wallet.
+    /// fixme Approves a transaction on behalf of an owner of the smart_wallet. (signers[3] = true)
     #[access_control(ctx.accounts.validate())]
     pub fn approve(ctx: Context<Approve>) -> ProgramResult {
         let owner_index = ctx
@@ -226,7 +235,7 @@ pub mod smart_wallet {
         Ok(())
     }
 
-    /// Unapproves a transaction on behalf of an owner of the smart_wallet.
+    /// fixme Unapproves a transaction on behalf of an owner of the smart_wallet. (signers[3] = false)
     #[access_control(ctx.accounts.validate())]
     pub fn unapprove(ctx: Context<Approve>) -> ProgramResult {
         let owner_index = ctx
@@ -244,7 +253,7 @@ pub mod smart_wallet {
         Ok(())
     }
 
-    /// Executes the given transaction if threshold owners have signed it.
+    /// fixme Executes the given transaction if threshold owners have signed it.
     #[access_control(ctx.accounts.validate())]
     pub fn execute_transaction(ctx: Context<ExecuteTransaction>) -> ProgramResult {
         let smart_wallet = &ctx.accounts.smart_wallet;
@@ -256,8 +265,7 @@ pub mod smart_wallet {
         do_execute_transaction(ctx, wallet_seeds)
     }
 
-    /// Executes the given transaction signed by the given derived address,
-    /// if threshold owners have signed it.
+    /// fixme Executes the given transaction signed by the given derived address, if threshold owners have signed it.
     /// This allows a Smart Wallet to receive SOL.
     #[access_control(ctx.accounts.validate())]
     pub fn execute_transaction_derived(
@@ -267,16 +275,17 @@ pub mod smart_wallet {
     ) -> ProgramResult {
         let smart_wallet = &ctx.accounts.smart_wallet;
         // Execute the transaction signed by the smart_wallet.
+        // todo these seeds diff to the ones above, but not super clear why / what they are
         let wallet_seeds: &[&[&[u8]]] = &[&[
             b"GokiSmartWalletDerived" as &[u8],
             &smart_wallet.key().to_bytes(),
-            &index.to_le_bytes(),
+            &index.to_le_bytes(), //todo ?
             &[bump],
         ]];
         do_execute_transaction(ctx, wallet_seeds)
     }
 
-    /// Invokes an arbitrary instruction as a PDA derived from the owner,
+    /// fixme Invokes an arbitrary instruction as a PDA derived from the owner,
     /// i.e. as an "Owner Invoker".
     ///
     /// This is useful for using the multisig as a whitelist or as a council,
@@ -306,7 +315,10 @@ pub mod smart_wallet {
         Ok(())
     }
 
-    /// Creates a struct containing a reverse mapping of a subaccount to a
+    /// fixme inits a PDA that records information about a subaccount, specifically -
+    ///  what wallet it belongs to
+    ///  its type (derived / owner invoker)
+    ///  its index
     /// [SmartWallet].
     #[access_control(ctx.accounts.validate())]
     pub fn create_subaccount_info(
@@ -317,6 +329,10 @@ pub mod smart_wallet {
         index: u64,
         subaccount_type: SubaccountType,
     ) -> ProgramResult {
+        //ok so it seems there can be 2 types of subaccounts - derived and owner-invoked
+        // each gets own PDA with respective seeds
+        // we've seen those seeds just be used above
+
         let (address, _derived_bump) = match subaccount_type {
             SubaccountType::Derived => Pubkey::find_program_address(
                 &[
@@ -336,8 +352,10 @@ pub mod smart_wallet {
             ),
         };
 
+        // verify the PDA address passed actually matches the PDA address generated rust-side
         invariant!(address == subaccount, SubaccountOwnerMismatch);
 
+        // for each subaccount we'll create a subaccount_info PDA account to store info
         let info = &mut ctx.accounts.subaccount_info;
         info.smart_wallet = smart_wallet;
         info.subaccount_type = subaccount_type;
@@ -466,7 +484,9 @@ pub struct CreateSubaccountInfo<'info> {
     pub system_program: Program<'info, System>,
 }
 
+// fixme executes all ixs, then burns the tx
 fn do_execute_transaction(ctx: Context<ExecuteTransaction>, seeds: &[&[&[u8]]]) -> ProgramResult {
+    // execute all ixs
     for ix in ctx.accounts.transaction.instructions.iter() {
         solana_program::program::invoke_signed(&(ix).into(), ctx.remaining_accounts, seeds)?;
     }

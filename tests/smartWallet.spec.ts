@@ -43,9 +43,11 @@ describe("smartWallet", () => {
 
     const threshold = new anchor.BN(2);
 
+    //stores the smart wallet instance we'll be interacting with
     let smartWalletWrapper: SmartWalletWrapper;
 
     before(async () => {
+      //create a new smart wallet
       const { smartWalletWrapper: wrapperInner, tx } = await sdk.newSmartWallet(
         {
           numOwners,
@@ -54,12 +56,15 @@ describe("smartWallet", () => {
           base: smartWalletBase,
         }
       );
+      //I think this "expectTX" actually calls .send()
       await expectTX(tx, "create new smartWallet").to.be.fulfilled;
       smartWalletWrapper = wrapperInner;
     });
 
-    it("happy path", async () => {
+    it.only("happy path", async () => {
       await smartWalletWrapper.reloadData();
+
+      //initial checks to make sure wallet created ok
       invariant(smartWalletWrapper.data, "smartWallet was not created");
       expect(smartWalletWrapper.data.threshold).to.be.bignumber.equal(
         new anchor.BN(2)
@@ -75,6 +80,7 @@ describe("smartWallet", () => {
         owners: newOwners,
       });
 
+      //this is the ix that ownerA will propose
       const instruction = new TransactionInstruction({
         programId: program.programId,
         keys: [
@@ -98,6 +104,7 @@ describe("smartWallet", () => {
         "create a tx to be processed by the smartWallet"
       ).to.be.fulfilled;
 
+      //fetch the tx account back and make sure everything is tored in it as expected
       const txAccount = await smartWalletWrapper.fetchTransaction(
         transactionKey
       );
@@ -136,6 +143,8 @@ describe("smartWallet", () => {
       expect(smartWalletWrapper.data.threshold).to.bignumber.equal(new BN(2));
       expect(smartWalletWrapper.data.owners).to.deep.equal(newOwners);
     });
+
+    // =============================================================================
 
     it("owner set changed", async () => {
       const [transactionKey] = await findTransactionAddress(

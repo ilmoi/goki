@@ -5,9 +5,9 @@ target
 node_modules
 
 # Generated IDL types
-artifacts/
+#artifacts/
 dist/
-src/idls/
+#src/idls/
 
 .yarn/*
 !.yarn/patches

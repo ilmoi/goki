@@ -32,7 +32,7 @@ export class SmartWalletWrapper {
 
   constructor(readonly sdk: GokiSDK, args: InitSmartWalletWrapperArgs) {
     this.bump = args.bump;
-    this.key = args.key;
+    this.key = args.key; //addr of the wallet
     this._data = args.data;
     this.program = sdk.programs.SmartWallet;
   }
@@ -46,7 +46,7 @@ export class SmartWalletWrapper {
   }
 
   /**
-   * reloadData
+   * fixme reloadData into _data
    */
   async reloadData(): Promise<SmartWalletData> {
     this._data = await this.sdk.programs.SmartWallet.account.smartWallet.fetch(
@@ -65,8 +65,11 @@ export class SmartWalletWrapper {
     instructions: ixs,
     eta,
   }: NewTransactionArgs): Promise<PendingSmartWalletTransaction> {
+    //get tx count
     const index = (await this.reloadData()).numTransactions.toNumber();
+    //find the PDA that will store info for the tx
     const [txKey, txBump] = await findTransactionAddress(this.key, index);
+    //prep accs
     const accounts = {
       smartWallet: this.key,
       transaction: txKey,

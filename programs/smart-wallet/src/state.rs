@@ -35,7 +35,7 @@ impl SmartWallet {
     pub fn space(max_owners: u8) -> usize {
         4 // Anchor discriminator
             + std::mem::size_of::<SmartWallet>()
-            + 4 // 4 = the Vec discriminator
+            + 4 // 4 = the Vec discriminator fixme very interesting, so this is how you add an arbitrary size for an array of vectors
             + std::mem::size_of::<Pubkey>() * (max_owners as usize)
     }
 }
@@ -46,8 +46,7 @@ pub struct Transaction {
     /// The [SmartWallet] account this transaction belongs to.
     pub smart_wallet: Pubkey,
     /// The auto-incremented integer index of the transaction.
-    /// All transactions on the [SmartWallet] can be looked up via this index,
-    /// allowing for easier browsing of a wallet's historical transactions.
+    /// fixme All transactions on the [SmartWallet] can be looked up via this index, allowing for easier browsing of a wallet's historical transactions.
     pub index: u64,
     /// Bump seed.
     pub bump: u8,
@@ -136,7 +135,7 @@ impl From<TXAccountMeta> for solana_program::instruction::AccountMeta {
     }
 }
 
-/// Type of Subaccount.
+/// todo Type of Subaccount.
 #[derive(AnchorSerialize, AnchorDeserialize, Copy, Clone, Debug, Eq, PartialEq)]
 #[repr(u8)]
 pub enum SubaccountType {

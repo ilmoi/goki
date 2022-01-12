@@ -19,16 +19,21 @@ declare_id!("NFTUJzSHuUCsMMqMRJpB7PmbsaU7Wm51acdPk2FXMLn");
 pub mod token_signer {
     use super::*;
 
+    // fixme validate that the user has a token
+    //  if they do - then the PDA owned by this program is marked as a signer and a CPI call is executed
+    //  todo where do we create this pda?
     #[access_control(ctx.accounts.validate())]
     pub fn invoke_signed_instruction(
         ctx: Context<InvokeSignedInstruction>,
         data: Vec<u8>,
     ) -> ProgramResult {
+        // mint -> seeds -> pda -> full seeds
         let mint = ctx.accounts.nft_account.mint.to_bytes();
         let seeds: &[&[u8]] = &[b"GokiTokenSigner", &mint];
         let (nft_addr, bump) = Pubkey::find_program_address(seeds, ctx.program_id);
         let full_seeds = &[b"GokiTokenSigner" as &[u8], &mint, &[bump]];
 
+        // so the PDA must be the signer
         assert_keys_eq!(nft_addr, ctx.accounts.nft_pda, "nft_pda");
 
         let accounts: Vec<AccountMeta> = ctx

@@ -43,11 +43,13 @@ impl<'info> Validate<'info> for Approve<'info> {
 
 impl<'info> Validate<'info> for ExecuteTransaction<'info> {
     fn validate(&self) -> ProgramResult {
+        // smart wallet key matches
         assert_keys_eq!(
             self.smart_wallet,
             self.transaction.smart_wallet,
             "smart_wallet"
         );
+        // onwer seq no matches
         require!(
             self.smart_wallet.owner_set_seqno == self.transaction.owner_set_seqno,
             OwnerSetChanged
@@ -60,6 +62,7 @@ impl<'info> Validate<'info> for ExecuteTransaction<'info> {
         let clock = Clock::get()?;
         let current_ts = clock.unix_timestamp;
         msg!("current_ts: {}; eta: {}", current_ts, eta);
+
         // Has transaction surpassed timelock?
         require!(current_ts >= eta, TransactionNotReady);
         if eta != NO_ETA {
