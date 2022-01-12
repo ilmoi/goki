@@ -4,10 +4,10 @@
     "module": "CommonJS",
     "moduleResolution": "node",
 
-    "strict": true,
+//    "strict": true,
     "noImplicitOverride": true,
-    "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
+//    "noUncheckedIndexedAccess": true,
+//    "noUnusedLocals": true,
 
     "esModuleInterop": true,
     "skipLibCheck": true,

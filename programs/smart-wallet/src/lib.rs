@@ -18,8 +18,6 @@
 //! To sign, owners should invoke the [smart_wallet::approve] instruction, and finally,
 //! [smart_wallet::execute_transaction], once enough (i.e. [SmartWallet::threshold]) of the owners have
 //! signed.
-//!
-//! fixme TLDR:
 #![deny(rustdoc::all)]
 #![allow(rustdoc::missing_doc_code_examples)]
 
@@ -254,6 +252,7 @@ pub mod smart_wallet {
     }
 
     /// fixme Executes the given transaction if threshold owners have signed it.
+    //   this only executes txs on the main wallet, eg approve or unapprove
     #[access_control(ctx.accounts.validate())]
     pub fn execute_transaction(ctx: Context<ExecuteTransaction>) -> ProgramResult {
         let smart_wallet = &ctx.accounts.smart_wallet;
@@ -266,7 +265,7 @@ pub mod smart_wallet {
     }
 
     /// fixme Executes the given transaction signed by the given derived address, if threshold owners have signed it.
-    /// This allows a Smart Wallet to receive SOL.
+    ///  This allows a Smart Wallet to send SOL.
     #[access_control(ctx.accounts.validate())]
     pub fn execute_transaction_derived(
         ctx: Context<ExecuteTransaction>,
@@ -275,7 +274,6 @@ pub mod smart_wallet {
     ) -> ProgramResult {
         let smart_wallet = &ctx.accounts.smart_wallet;
         // Execute the transaction signed by the smart_wallet.
-        // todo these seeds diff to the ones above, but not super clear why / what they are
         let wallet_seeds: &[&[&[u8]]] = &[&[
             b"GokiSmartWalletDerived" as &[u8],
             &smart_wallet.key().to_bytes(),
@@ -332,6 +330,7 @@ pub mod smart_wallet {
         //ok so it seems there can be 2 types of subaccounts - derived and owner-invoked
         // each gets own PDA with respective seeds
         // we've seen those seeds just be used above
+        // fixme diff explained here - https://docs.tribeca.so/goki/smart-wallet
 
         let (address, _derived_bump) = match subaccount_type {
             SubaccountType::Derived => Pubkey::find_program_address(
