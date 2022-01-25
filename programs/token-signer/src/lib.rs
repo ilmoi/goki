@@ -19,7 +19,7 @@ declare_id!("NFTUJzSHuUCsMMqMRJpB7PmbsaU7Wm51acdPk2FXMLn");
 pub mod token_signer {
     use super::*;
 
-    // fixme validate that the user has a token
+    // validate that the user has a token
     //  if they do - then the PDA owned by this program is marked as a signer and a CPI call is executed
     //  todo where do we create this pda?
     #[access_control(ctx.accounts.validate())]

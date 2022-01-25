@@ -1,7 +1,7 @@
 import { generateErrorMap } from "@saberhq/anchor-contrib";
 
 export type TokenSignerIDL = {
-  version: "0.0.0";
+  version: "0.5.3";
   name: "token_signer";
   instructions: [
     {
@@ -33,14 +33,14 @@ export type TokenSignerIDL = {
   ];
   errors: [
     {
-      code: 300;
+      code: 6000;
       name: "Unauthorized";
       msg: "Unauthorized.";
     }
   ];
 };
 export const TokenSignerJSON: TokenSignerIDL = {
-  version: "0.0.0",
+  version: "0.5.3",
   name: "token_signer",
   instructions: [
     {
@@ -72,7 +72,7 @@ export const TokenSignerJSON: TokenSignerIDL = {
   ],
   errors: [
     {
-      code: 300,
+      code: 6000,
       name: "Unauthorized",
       msg: "Unauthorized.",
     },

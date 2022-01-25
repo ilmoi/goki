@@ -46,7 +46,7 @@ export class SmartWalletWrapper {
   }
 
   /**
-   * fixme reloadData into _data
+   * reloadData into _data
    */
   async reloadData(): Promise<SmartWalletData> {
     this._data = await this.sdk.programs.SmartWallet.account.smartWallet.fetch(

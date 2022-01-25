@@ -1,7 +1,7 @@
 import { generateErrorMap } from "@saberhq/anchor-contrib";
 
 export type SmartWalletIDL = {
-  version: "0.0.0";
+  version: "0.5.4";
   name: "smart_wallet";
   instructions: [
     {
@@ -726,59 +726,64 @@ export type SmartWalletIDL = {
   ];
   errors: [
     {
-      code: 300;
+      code: 6000;
       name: "InvalidOwner";
       msg: "The given owner is not part of this smart wallet.";
     },
     {
-      code: 301;
+      code: 6001;
       name: "InvalidETA";
       msg: "Estimated execution block must satisfy delay.";
     },
     {
-      code: 302;
+      code: 6002;
       name: "DelayTooHigh";
       msg: "Delay greater than the maximum.";
     },
     {
-      code: 303;
+      code: 6003;
       name: "NotEnoughSigners";
       msg: "Not enough owners signed this transaction.";
     },
     {
-      code: 304;
+      code: 6004;
       name: "TransactionIsStale";
       msg: "Transaction is past the grace period.";
     },
     {
-      code: 305;
+      code: 6005;
       name: "TransactionNotReady";
       msg: "Transaction hasn't surpassed time lock.";
     },
     {
-      code: 306;
+      code: 6006;
       name: "AlreadyExecuted";
       msg: "The given transaction has already been executed.";
     },
     {
-      code: 307;
+      code: 6007;
       name: "InvalidThreshold";
       msg: "Threshold must be less than or equal to the number of owners.";
     },
     {
-      code: 308;
+      code: 6008;
       name: "OwnerSetChanged";
       msg: "Owner set has changed since the creation of the transaction.";
     },
     {
-      code: 309;
+      code: 6009;
       name: "SubaccountOwnerMismatch";
       msg: "Subaccount does not belong to smart wallet.";
+    },
+    {
+      code: 6010;
+      name: "DestinationNotWhitelisted";
+      msg: "destination not whitelisted";
     }
   ];
 };
 export const SmartWalletJSON: SmartWalletIDL = {
-  version: "0.0.0",
+  version: "0.5.4",
   name: "smart_wallet",
   instructions: [
     {
@@ -1503,54 +1508,59 @@ export const SmartWalletJSON: SmartWalletIDL = {
   ],
   errors: [
     {
-      code: 300,
+      code: 6000,
       name: "InvalidOwner",
       msg: "The given owner is not part of this smart wallet.",
     },
     {
-      code: 301,
+      code: 6001,
       name: "InvalidETA",
       msg: "Estimated execution block must satisfy delay.",
     },
     {
-      code: 302,
+      code: 6002,
       name: "DelayTooHigh",
       msg: "Delay greater than the maximum.",
     },
     {
-      code: 303,
+      code: 6003,
       name: "NotEnoughSigners",
       msg: "Not enough owners signed this transaction.",
     },
     {
-      code: 304,
+      code: 6004,
       name: "TransactionIsStale",
       msg: "Transaction is past the grace period.",
     },
     {
-      code: 305,
+      code: 6005,
       name: "TransactionNotReady",
       msg: "Transaction hasn't surpassed time lock.",
     },
     {
-      code: 306,
+      code: 6006,
       name: "AlreadyExecuted",
       msg: "The given transaction has already been executed.",
     },
     {
-      code: 307,
+      code: 6007,
       name: "InvalidThreshold",
       msg: "Threshold must be less than or equal to the number of owners.",
     },
     {
-      code: 308,
+      code: 6008,
       name: "OwnerSetChanged",
       msg: "Owner set has changed since the creation of the transaction.",
     },
     {
-      code: 309,
+      code: 6009,
       name: "SubaccountOwnerMismatch",
       msg: "Subaccount does not belong to smart wallet.",
+    },
+    {
+      code: 6010,
+      name: "DestinationNotWhitelisted",
+      msg: "destination not whitelisted",
     },
   ],
 };

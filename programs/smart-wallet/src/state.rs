@@ -35,7 +35,7 @@ impl SmartWallet {
     pub fn space(max_owners: u8) -> usize {
         4 // Anchor discriminator
             + std::mem::size_of::<SmartWallet>()
-            + 4 // 4 = the Vec discriminator fixme very interesting, so this is how you add an arbitrary size for an array of vectors
+            + 4 // 4 = the Vec discriminator very interesting, so this is how you add an arbitrary size for an array of vectors
             + std::mem::size_of::<Pubkey>() * (max_owners as usize)
     }
 }
@@ -46,7 +46,7 @@ pub struct Transaction {
     /// The [SmartWallet] account this transaction belongs to.
     pub smart_wallet: Pubkey,
     /// The auto-incremented integer index of the transaction.
-    /// fixme All transactions on the [SmartWallet] can be looked up via this index, allowing for easier browsing of a wallet's historical transactions.
+    /// All transactions on the [SmartWallet] can be looked up via this index, allowing for easier browsing of a wallet's historical transactions.
     pub index: u64,
     /// Bump seed.
     pub bump: u8,

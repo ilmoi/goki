@@ -8,6 +8,7 @@ import {
 } from "@saberhq/solana-contrib";
 import { sleep, u64 } from "@saberhq/token-utils";
 import {
+  Connection,
   Keypair,
   LAMPORTS_PER_SOL,
   PublicKey,
@@ -182,7 +183,7 @@ describe("smartWallet", () => {
       }
     });
 
-    //fixme well technically it's not, technically it just gives an error
+    //well technically it's not, technically it just gives an error
     it("transaction execution is idempotent", async () => {
       const newThreshold = new u64(1);
       const data = program.coder.instruction.encode("change_threshold", {
@@ -409,7 +410,7 @@ describe("smartWallet", () => {
       smartWalletWrapper = wrapperInner;
     });
 
-    it.only("Can transfer lamports from smart wallet", async () => {
+    it("Can transfer lamports from smart wallet", async () => {
       const { provider, key } = smartWalletWrapper;
 
       const index = 0;
@@ -424,7 +425,7 @@ describe("smartWallet", () => {
       ]);
       await expectTX(tx1, "transfer lamports to smart wallet").to.be.fulfilled;
 
-      // fixme adding simple whitelisting
+      // adding simple whitelisting
       const receiver = new PublicKey("75ErM1QcGjHiPMX7oLsf9meQdGSUs4ZrwS2X8tBpsZhA");
 
       const ix = SystemProgram.transfer({
@@ -480,7 +481,7 @@ describe("smartWallet", () => {
       smartWalletWrapper = wrapperInner;
     });
 
-    it("should invoke 1 of N", async () => {
+    it.skip("should invoke 1 of N", async () => {
       const index = 33; //can be set to anything, this goes into the PDA seeds
       const [invokerKey] = await smartWalletWrapper.findOwnerInvokerAddress(
         index

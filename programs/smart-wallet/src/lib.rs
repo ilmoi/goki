@@ -59,7 +59,7 @@ declare_id!("GokivDYuQXPZCWRkwMhdH2h91KpDQXBEmpgBgs55bnpH");
 pub mod smart_wallet {
     use super::*;
 
-    /// fixme Initializes a new [SmartWallet] account with a set of owners and a threshold.
+    /// Initializes a new [SmartWallet] account with a set of owners and a threshold.
     #[access_control(ctx.accounts.validate())]
     pub fn create_smart_wallet(
         ctx: Context<CreateSmartWallet>,
@@ -97,7 +97,7 @@ pub mod smart_wallet {
         Ok(())
     }
 
-    /// fixme Sets the owners field on the smart_wallet. The only way this can be invoked
+    /// Sets the owners field on the smart_wallet. The only way this can be invoked
     /// is via a recursive call from execute_transaction -> set_owners.
     #[access_control(ctx.accounts.validate())]
     pub fn set_owners(ctx: Context<Auth>, owners: Vec<Pubkey>) -> ProgramResult {
@@ -117,7 +117,7 @@ pub mod smart_wallet {
         Ok(())
     }
 
-    /// fixme Changes the execution threshold of the smart_wallet. The only way this can be
+    /// Changes the execution threshold of the smart_wallet. The only way this can be
     /// invoked is via a recursive call from execute_transaction ->
     /// change_threshold.
     #[access_control(ctx.accounts.validate())]
@@ -147,7 +147,7 @@ pub mod smart_wallet {
         create_transaction_with_timelock(ctx, bump, instructions, NO_ETA)
     }
 
-    /// fixme Creates a new [Transaction] account with time delay.
+    /// Creates a new [Transaction] account with time delay.
     ///  literally prepares an account with a bunch of tx data on it, like proposer, ixs, signers, etc
     //   "eta" is ts when tx will execute
     #[access_control(ctx.accounts.validate())]
@@ -216,7 +216,7 @@ pub mod smart_wallet {
         Ok(())
     }
 
-    /// fixme Approves a transaction on behalf of an owner of the smart_wallet. (signers[3] = true)
+    /// Approves a transaction on behalf of an owner of the smart_wallet. (signers[3] = true)
     #[access_control(ctx.accounts.validate())]
     pub fn approve(ctx: Context<Approve>) -> ProgramResult {
         let owner_index = ctx
@@ -234,7 +234,7 @@ pub mod smart_wallet {
         Ok(())
     }
 
-    /// fixme Unapproves a transaction on behalf of an owner of the smart_wallet. (signers[3] = false)
+    /// Unapproves a transaction on behalf of an owner of the smart_wallet. (signers[3] = false)
     #[access_control(ctx.accounts.validate())]
     pub fn unapprove(ctx: Context<Approve>) -> ProgramResult {
         let owner_index = ctx
@@ -252,7 +252,7 @@ pub mod smart_wallet {
         Ok(())
     }
 
-    /// fixme Executes the given transaction if threshold owners have signed it.
+    /// Executes the given transaction if threshold owners have signed it.
     //   this only executes txs on the main wallet, eg approve or unapprove
     #[access_control(ctx.accounts.validate())]
     pub fn execute_transaction(ctx: Context<ExecuteTransaction>) -> ProgramResult {
@@ -265,7 +265,7 @@ pub mod smart_wallet {
         do_execute_transaction(ctx, wallet_seeds)
     }
 
-    /// fixme Executes the given transaction signed by the given derived address, if threshold owners have signed it.
+    /// Executes the given transaction signed by the given derived address, if threshold owners have signed it.
     ///  This allows a Smart Wallet to send SOL.
     #[access_control(ctx.accounts.validate())]
     pub fn execute_transaction_derived(
@@ -284,7 +284,7 @@ pub mod smart_wallet {
         do_execute_transaction(ctx, wallet_seeds)
     }
 
-    /// fixme Invokes an arbitrary instruction as a PDA derived from the owner,
+    /// Invokes an arbitrary instruction as a PDA derived from the owner,
     /// i.e. as an "Owner Invoker".
     ///
     /// This is useful for using the multisig as a whitelist or as a council,
@@ -314,7 +314,7 @@ pub mod smart_wallet {
         Ok(())
     }
 
-    /// fixme inits a PDA that records information about a subaccount, specifically -
+    /// inits a PDA that records information about a subaccount, specifically -
     ///  what wallet it belongs to
     ///  its type (derived / owner invoker)
     ///  its index
@@ -331,7 +331,7 @@ pub mod smart_wallet {
         //ok so it seems there can be 2 types of subaccounts - derived and owner-invoked
         // each gets own PDA with respective seeds
         // we've seen those seeds just be used above
-        // fixme diff explained here - https://docs.tribeca.so/goki/smart-wallet
+        // diff explained here - https://docs.tribeca.so/goki/smart-wallet
 
         let (address, _derived_bump) = match subaccount_type {
             SubaccountType::Derived => Pubkey::find_program_address(
@@ -484,20 +484,20 @@ pub struct CreateSubaccountInfo<'info> {
     pub system_program: Program<'info, System>,
 }
 
-// fixme executes all ixs, then burns the tx
+// executes all ixs, then burns the tx
 fn do_execute_transaction(ctx: Context<ExecuteTransaction>, seeds: &[&[&[u8]]]) -> ProgramResult {
     // execute all ixs
     for ix in ctx.accounts.transaction.instructions.iter() {
 
-        // fixme adding simple whitelisting
-        msg!("ix is {:#?}", ix);
-        if ix.program_id == Pubkey::from_str("11111111111111111111111111111111").unwrap() {
-            let allowlist = vec![Pubkey::from_str("5u1vB9UeQSCzzwEhmKPhmQH1veWP9KZyZ8xFxFrmj8CK").unwrap()];
-            let dest_pk = ix.keys[1].pubkey;
-            if !allowlist.contains(&dest_pk) {
-                return Err(ErrorCode::DestinationNotWhitelisted.into());
-            }
-        }
+        // adding simple whitelisting
+        // msg!("ix is {:#?}", ix);
+        // if ix.program_id == Pubkey::from_str("11111111111111111111111111111111").unwrap() {
+        //     let allowlist = vec![Pubkey::from_str("5u1vB9UeQSCzzwEhmKPhmQH1veWP9KZyZ8xFxFrmj8CK").unwrap()];
+        //     let dest_pk = ix.keys[1].pubkey;
+        //     if !allowlist.contains(&dest_pk) {
+        //         return Err(ErrorCode::DestinationNotWhitelisted.into());
+        //     }
+        // }
 
         solana_program::program::invoke_signed(&(ix).into(), ctx.remaining_accounts, seeds)?;
     }
